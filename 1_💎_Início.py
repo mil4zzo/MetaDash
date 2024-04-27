@@ -4,7 +4,12 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 from urllib.parse import unquote_plus
 
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    page_title="Início",
+    page_icon="💎"
+)
 
 # DEFINE PLANILHA SOURCE E ABAS
 SHEET_NAME = "EI.17 - PESQUISA TRAFEGO"
@@ -56,17 +61,30 @@ df_uploaded_ads = load_sheet(SHEET_NAME, SHEET_ADS_UPLOADED_TAB)
 
 # FORMATA DADOS PESQUISA
 df_pesquisa = df_pesquisa[COLUMNS_PESQUISA]
-df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA']).dt.strftime("%d/%m/%y")
-df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA']).dt.strftime("%d/%m/%y")
-df_pesquisa['UTM_ADSET'] = [ unquote_plus(x) for x in df_pesquisa['UTM_ADSET'] ]
-df_pesquisa['UTM_TERM'] = [ unquote_plus(x) for x in df_pesquisa['UTM_TERM'] ]
+df_pesquisa["PATRIMÔNIO"] = df_pesquisa["PATRIMÔNIO"].astype("string")
+df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA'])
+df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA'])
+df_pesquisa["UTM_CAMPAIGN"] = df_pesquisa["UTM_CAMPAIGN"].astype("string")
+df_pesquisa["UTM_SOURCE"] = df_pesquisa["UTM_SOURCE"].astype("string")
+df_pesquisa["UTM_MEDIUM"] = df_pesquisa["UTM_MEDIUM"].astype("string")
+df_pesquisa["UTM_CONTENT"] = df_pesquisa["UTM_CONTENT"].astype("string")
+df_pesquisa['UTM_ADSET'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_ADSET']]
+df_pesquisa['UTM_ADSET'] = df_pesquisa['UTM_ADSET'].astype('string')
+df_pesquisa['UTM_TERM'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_TERM']]
+df_pesquisa['UTM_TERM'] = df_pesquisa['UTM_TERM'].astype('string')
+
+df_pesquisa.dtypes
 
 # FORMATA DADOS ANÚNCIOS SUBIDOS
 df_uploaded_ads = df_uploaded_ads[COLUMNS_ADS_UPLOADED]
 df_uploaded_ads = df_uploaded_ads.replace('', pd.NA).dropna(how="all")
 
+st.session_state['df_pesquisa'] = df_pesquisa
+st.session_state['df_meta_ads'] = df_meta_ads
+st.session_state['df_uploaded_ads'] = df_uploaded_ads
+
 # Streamlit app
-st.title('EI.17 - ADs Dashboard')
+st.title('💎 Início')
 
 st.markdown("## DADOS PESQUISA")
 st.dataframe(df_pesquisa, use_container_width=True)
