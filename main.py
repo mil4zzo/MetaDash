@@ -2,6 +2,7 @@ import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
+from urllib.parse import unquote_plus
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
@@ -18,21 +19,23 @@ COLUMNS_ADS_UPLOADED = ["NOME", "LINK DO DRIVE"]
 # INICIA CONSTANTES
 TICKET_BRUTO = 1500
 TICKET_LIQUIDO = 1050
-TX_CONVERSAO_P1 = [
-    {"resposta": "Acima de R$1 milhão", "taxa_conversao": "4,89%"},
-    {"resposta": "Entre R$500 mil e R$1 milhão", "taxa_conversao": "4,42%"},
-    {"resposta": "Entre R$250 mil e R$500 mil", "taxa_conversao": "4,00%"},
-    {"resposta": "Entre R$100 mil e R$250 mil", "taxa_conversao": "3,82%"},
-    {"resposta": "Entre R$20 mil e R$100 mil", "taxa_conversao": "2,03%"},
-    {"resposta": "Entre R$5 mil e R$20 mil", "taxa_conversao": "1,42%"},
-    {"resposta": "Menos de R$5 mil", "taxa_conversao": "0,67%"}
+TX_CONVERSAO = [
+    {
+        "pergunta": "PATRIMÔNIO",
+        "conversoes": [
+            {"resposta": "Acima de R$1 milhão", "taxa": 0.0489},
+            {"resposta": "Entre R$500 mil e R$1 milhão", "taxa": 0.0442},
+            {"resposta": "Entre R$250 mil e R$500 mil", "taxa": 0.04},
+            {"resposta": "Entre R$100 mil e R$250 mil", "taxa": 0.0382},
+            {"resposta": "Entre R$20 mil e R$100 mil", "taxa": 0.0203},
+            {"resposta": "Entre R$5 mil e R$20 mil", "taxa": 0.0142},
+            {"resposta": "Menos de R$5 mil", "taxa": 0.0067}
+        ]
+    }
 ]
 
-# Now, `data` is an array of dictionaries where each dictionary is a key-value pair representing one row of your original data.
-
-
 # Function to authenticate and access the spreadsheet
-@st.cache_data(show_spinner="Carregando dados...", ttl=900)
+@st.cache_data(show_spinner="Carregando dados...", ttl=9000)
 def load_sheet(sheet_name, worksheet_name):
     scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name('metadash-gcsac.json', scope)
@@ -54,6 +57,8 @@ df_uploaded_ads = load_sheet(SHEET_NAME, SHEET_ADS_UPLOADED_TAB)
 df_pesquisa = df_pesquisa[COLUMNS_PESQUISA]
 df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA']).dt.strftime("%d/%m/%y")
 df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA']).dt.strftime("%d/%m/%y")
+df_pesquisa['UTM_ADSET'] = [ unquote_plus(x) for x in df_pesquisa['UTM_ADSET'] ]
+df_pesquisa['UTM_TERM'] = [ unquote_plus(x) for x in df_pesquisa['UTM_TERM'] ]
 
 # FORMATA DADOS ANÚNCIOS SUBIDOS
 df_uploaded_ads = df_uploaded_ads[COLUMNS_ADS_UPLOADED]
@@ -73,4 +78,4 @@ st.dataframe(df_uploaded_ads, use_container_width=True)
 st.markdown("## CALIBRAGEM")
 st.sidebar.write(f"Ticket bruto: {TICKET_BRUTO}")
 st.sidebar.write(f"Ticket liquido: {TICKET_LIQUIDO}")
-st.sidebar.table(TX_CONVERSAO_P1)
+st.sidebar.table(pd.DataFrame(TX_CONVERSAO[0]['conversoes']).style.format({"taxa": "{:.2%}"}))
