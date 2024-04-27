@@ -46,6 +46,7 @@ def load_sheet(sheet_name, worksheet_name):
     
     # Get all data from the sheet
     data = sheet.get_all_records()
+
     return pd.DataFrame(data)
 
 # Load the data
@@ -62,6 +63,7 @@ df_pesquisa['UTM_TERM'] = [ unquote_plus(x) for x in df_pesquisa['UTM_TERM'] ]
 
 # FORMATA DADOS ANÚNCIOS SUBIDOS
 df_uploaded_ads = df_uploaded_ads[COLUMNS_ADS_UPLOADED]
+df_uploaded_ads = df_uploaded_ads.replace('', pd.NA).dropna(how="all")
 
 # Streamlit app
 st.title('EI.17 - ADs Dashboard')
