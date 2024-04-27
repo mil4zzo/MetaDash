@@ -77,7 +77,6 @@ st.dataframe(df_meta_ads, use_container_width=True)
 st.markdown("## ANUNCIOS SUBIDOS")
 st.dataframe(df_uploaded_ads, use_container_width=True)
 
-st.markdown("## CALIBRAGEM")
 st.sidebar.write(f"Ticket bruto: {TICKET_BRUTO}")
 st.sidebar.write(f"Ticket liquido: {TICKET_LIQUIDO}")
 st.sidebar.table(pd.DataFrame(TX_CONVERSAO[0]['conversoes']).style.format({"taxa": "{:.2%}"}))
