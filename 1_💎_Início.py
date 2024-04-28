@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # DEFINE PLANILHA SOURCE E ABAS
-SHEET_NAME = "EI.17 - PESQUISA TRAFEGO"
+SHEET_NAME = "[PY] EI.17 - PESQUISA TRAFEGO"
 SHEET_PESQUISA_TAB = "DADOS"
 SHEET_ADS_META_TAB = "NEW META ADs"
 SHEET_ADS_UPLOADED_TAB = "ANUNCIOS SUBIDOS"
@@ -39,7 +39,7 @@ TX_CONVERSAO = [
     }
 ]
 
-# Function to authenticate and access the spreadsheet
+# CARREGA DADOS DE GOOGLE SHEETS
 @st.cache_data(show_spinner="Carregando dados...", ttl=9000)
 def load_sheet(sheet_name, worksheet_name):
     scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
@@ -54,30 +54,97 @@ def load_sheet(sheet_name, worksheet_name):
 
     return pd.DataFrame(data)
 
-# Load the data
+# CARREGA PLANILHAS #
 df_pesquisa = load_sheet(SHEET_NAME, SHEET_PESQUISA_TAB)
 df_meta_ads = load_sheet(SHEET_NAME, SHEET_ADS_META_TAB)
 df_uploaded_ads = load_sheet(SHEET_NAME, SHEET_ADS_UPLOADED_TAB)
 
-# FORMATA DADOS PESQUISA
+### PESQUISA DE TRÁFEGO ###
+# FILTRA COLUNAS E FORMATA VALORES
 df_pesquisa = df_pesquisa[COLUMNS_PESQUISA]
-df_pesquisa["PATRIMÔNIO"] = df_pesquisa["PATRIMÔNIO"].astype("string")
+df_pesquisa = df_pesquisa[(df_pesquisa['UTM_MEDIUM'] == 'pago') & (df_pesquisa['UTM_SOURCE'] == 'ig')]
 df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA'])
 df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA'])
-df_pesquisa["UTM_CAMPAIGN"] = df_pesquisa["UTM_CAMPAIGN"].astype("string")
-df_pesquisa["UTM_SOURCE"] = df_pesquisa["UTM_SOURCE"].astype("string")
-df_pesquisa["UTM_MEDIUM"] = df_pesquisa["UTM_MEDIUM"].astype("string")
-df_pesquisa["UTM_CONTENT"] = df_pesquisa["UTM_CONTENT"].astype("string")
+df_pesquisa['UTM_CAMPAIGN'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_CAMPAIGN']]
+df_pesquisa['UTM_SOURCE'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_SOURCE']]
+df_pesquisa['UTM_MEDIUM'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_MEDIUM']]
 df_pesquisa['UTM_ADSET'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_ADSET']]
-df_pesquisa['UTM_ADSET'] = df_pesquisa['UTM_ADSET'].astype('string')
+df_pesquisa['UTM_CONTENT'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_CONTENT']]
 df_pesquisa['UTM_TERM'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_TERM']]
-df_pesquisa['UTM_TERM'] = df_pesquisa['UTM_TERM'].astype('string')
+df_pesquisa = df_pesquisa.replace('', pd.NA).replace("{{ad.name}}", pd.NA).dropna(how="any")
+df_pesquisa.reset_index(drop=True)
 
-df_pesquisa.dtypes
+### META ADS ###
+# FORMATA VALORES
+df_meta_ads['STATUS'] = "SEM DADOS"
+df_meta_ads['DATA'] = pd.to_datetime(df_meta_ads['DATA'], dayfirst=True)
+df_meta_ads['CAMPANHA: ID'] = df_meta_ads['CAMPANHA: ID'].astype('string')
+df_meta_ads['CAMPANHA: NOME'] = df_meta_ads['CAMPANHA: NOME'].astype('string')
+df_meta_ads['CONJUNTO: ID'] = df_meta_ads['CONJUNTO: ID'].astype('string')
+df_meta_ads['CONJUNTO: NOME'] = df_meta_ads['CONJUNTO: NOME'].astype('string')
+df_meta_ads['ANÚNCIO: ID'] = df_meta_ads['ANÚNCIO: ID'].astype('string')
+df_meta_ads['ANÚNCIO: NOME'] = df_meta_ads['ANÚNCIO: NOME'].astype('string')
+df_meta_ads['UNIQUE ID'] = df_meta_ads['UNIQUE ID'].astype('string')
+df_meta_ads['CPM'] = pd.to_numeric(df_meta_ads['CPM'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['VALOR USADO'] = pd.to_numeric(df_meta_ads['VALOR USADO'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['LEADS'] = pd.to_numeric(df_meta_ads['LEADS'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['CPL'] = pd.to_numeric(df_meta_ads['CPL'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['CTR'] = pd.to_numeric(df_meta_ads['CTR'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['IMPRESSÕES'] = pd.to_numeric(df_meta_ads['IMPRESSÕES'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['ALCANCE'] = pd.to_numeric(df_meta_ads['ALCANCE'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['FREQUÊNCIA'] = pd.to_numeric(df_meta_ads['FREQUÊNCIA'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['CLICKS'] = pd.to_numeric(df_meta_ads['CLICKS'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['CLICKS NO LINK'] = pd.to_numeric(df_meta_ads['CLICKS NO LINK'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['PAGEVIEWS'] = pd.to_numeric(df_meta_ads['PAGEVIEWS'], errors='coerce').fillna(0).astype('int32')
+df_meta_ads['LP CTR'] = pd.to_numeric(df_meta_ads['LP CTR'], errors='coerce').fillna(0).astype('float32')
+df_meta_ads['1s'] = pd.to_numeric(df_meta_ads['1s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['2s'] = pd.to_numeric(df_meta_ads['2s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['3s'] = pd.to_numeric(df_meta_ads['3s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['4s'] = pd.to_numeric(df_meta_ads['4s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['5s'] = pd.to_numeric(df_meta_ads['5s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['6s'] = pd.to_numeric(df_meta_ads['6s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['7s'] = pd.to_numeric(df_meta_ads['7s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['8s'] = pd.to_numeric(df_meta_ads['8s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['9s'] = pd.to_numeric(df_meta_ads['9s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['10s'] = pd.to_numeric(df_meta_ads['10s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['11s'] = pd.to_numeric(df_meta_ads['11s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['12s'] = pd.to_numeric(df_meta_ads['12s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['13s'] = pd.to_numeric(df_meta_ads['13s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['14s'] = pd.to_numeric(df_meta_ads['14s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['15-20s'] = pd.to_numeric(df_meta_ads['15-20s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['20-25s'] = pd.to_numeric(df_meta_ads['20-25s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['25-30s'] = pd.to_numeric(df_meta_ads['25-30s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['30-40s'] = pd.to_numeric(df_meta_ads['30-40s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['40-50s'] = pd.to_numeric(df_meta_ads['40-50s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['50-60s'] = pd.to_numeric(df_meta_ads['50-60s'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['60s+'] = pd.to_numeric(df_meta_ads['60s+'], errors='coerce').fillna(0).astype('int8')
+# CALCULA E FORMATA VALORES
+df_meta_ads['CONNECT RATE'] = (df_meta_ads['PAGEVIEWS'] / df_meta_ads['CLICKS NO LINK'].replace(0, pd.NA).fillna(0)).astype('float32')
+df_meta_ads['CONVERSÃO DA PÁGINA'] = (df_meta_ads['LEADS'] / df_meta_ads['PAGEVIEWS'].replace(0, pd.NA).fillna(0)).astype('float32')
+df_meta_ads['PERFIL CTR'] = (df_meta_ads['CTR'] - df_meta_ads['LP CTR']).astype('float32')
+df_meta_ads.reset_index(drop=True)
+# CONFIGURA COLUNAS
+""" column_cfg_meta_ads={
+        "STATUS": st.column_config.SelectboxColumn(
+            "💡 Status",
+            help="Status do anúncio",
+            width="medium",
+            options=[
+                "ATIVO",
+                "PAUSADO",
+                "REJEITADO",
+                "SEM DADOS"
+            ],
+            required=False,
+        )
+} """
 
-# FORMATA DADOS ANÚNCIOS SUBIDOS
+
+### ANÚNCIOS SUBIDOS ###
+# FILTRA COLUNAS E FORMATA VALORES
 df_uploaded_ads = df_uploaded_ads[COLUMNS_ADS_UPLOADED]
 df_uploaded_ads = df_uploaded_ads.replace('', pd.NA).dropna(how="all")
+df_uploaded_ads.reset_index(drop=True)
 
 st.session_state['df_pesquisa'] = df_pesquisa
 st.session_state['df_meta_ads'] = df_meta_ads
