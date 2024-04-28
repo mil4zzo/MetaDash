@@ -3,10 +3,10 @@ import pandas as pd
 
 from libs.utils import safe_divide
 
-df_meta_ads = st.session_state['df_meta_ads']
+df_por_anuncio = st.session_state['df_meta_ads']
 df_pesquisa = st.session_state['df_pesquisa']
 
-df_meta_ads = df_meta_ads.groupby("ANÚNCIO: NOME").agg({
+df_por_anuncio = df_por_anuncio.groupby("ANÚNCIO: NOME").agg({
     'LEADS': 'sum',
     'VALOR USADO': 'sum',
     'CPM': 'mean',
@@ -16,9 +16,9 @@ df_meta_ads = df_meta_ads.groupby("ANÚNCIO: NOME").agg({
     'PAGEVIEWS': 'sum'
 })
 
-df_meta_ads['CTR'] = safe_divide(df_meta_ads['CLICKS'], df_meta_ads['IMPRESSÕES']) * 100
-df_meta_ads['CONNECT RATE'] = safe_divide(df_meta_ads['PAGEVIEWS'], df_meta_ads['CLICKS NO LINK']) * 100
-df_meta_ads['CONVERSÃO DA PÁGINA'] = safe_divide(df_meta_ads['LEADS'], df_meta_ads['PAGEVIEWS']) * 100
+df_por_anuncio['CTR'] = safe_divide(df_por_anuncio['CLICKS'], df_por_anuncio['IMPRESSÕES']) * 100
+df_por_anuncio['CONNECT RATE'] = safe_divide(df_por_anuncio['PAGEVIEWS'], df_por_anuncio['CLICKS NO LINK']) * 100
+df_por_anuncio['CONVERSÃO DA PÁGINA'] = safe_divide(df_por_anuncio['LEADS'], df_por_anuncio['PAGEVIEWS']) * 100
 
 col_orders_por_anuncio = [
     "LEADS",
@@ -33,12 +33,12 @@ col_orders_por_anuncio = [
     "PAGEVIEWS"
 ]
 
-df_meta_ads = df_meta_ads[col_orders_por_anuncio].reset_index()
+df_por_anuncio = df_por_anuncio[col_orders_por_anuncio].reset_index()
 
 patrimonio_absoluto = pd.crosstab(df_pesquisa['UTM_TERM'], df_pesquisa['PATRIMÔNIO'])
 patrimonio_relativo = pd.crosstab(df_pesquisa['UTM_TERM'], df_pesquisa['PATRIMÔNIO'], normalize="index")
 
-df_meta_ads = df_meta_ads.merge(patrimonio_relativo, left_on="ANÚNCIO: NOME", right_on="UTM_TERM" )
+df_meta_ads = df_por_anuncio.merge(patrimonio_relativo, left_on="ANÚNCIO: NOME", right_on="UTM_TERM" )
 
 colcfg_por_anuncio = {
         "VALOR USADO": st.column_config.NumberColumn(
