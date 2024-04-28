@@ -1,8 +1,10 @@
-import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import streamlit as st
 import pandas as pd
+from oauth2client.service_account import ServiceAccountCredentials
+
 from urllib.parse import unquote_plus
+from libs.utils import cast_number, safe_divide
 
 st.set_page_config(
     layout="wide",
@@ -63,8 +65,8 @@ df_uploaded_ads = load_sheet(SHEET_NAME, SHEET_ADS_UPLOADED_TAB)
 # FILTRA COLUNAS E FORMATA VALORES
 df_pesquisa = df_pesquisa[COLUMNS_PESQUISA]
 df_pesquisa = df_pesquisa[(df_pesquisa['UTM_MEDIUM'] == 'pago') & (df_pesquisa['UTM_SOURCE'] == 'ig')]
-df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA'])
-df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA'])
+df_pesquisa['DATA DA PESQUISA'] = pd.to_datetime(df_pesquisa['DATA DA PESQUISA'], dayfirst=True)
+df_pesquisa['DATA DE CAPTURA'] = pd.to_datetime(df_pesquisa['DATA DE CAPTURA'], dayfirst=True)
 df_pesquisa['UTM_CAMPAIGN'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_CAMPAIGN']]
 df_pesquisa['UTM_SOURCE'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_SOURCE']]
 df_pesquisa['UTM_MEDIUM'] = [unquote_plus(x) if isinstance(x, str) else x for x in df_pesquisa['UTM_MEDIUM']]
@@ -85,60 +87,44 @@ df_meta_ads['CONJUNTO: NOME'] = df_meta_ads['CONJUNTO: NOME'].astype('string')
 df_meta_ads['ANÚNCIO: ID'] = df_meta_ads['ANÚNCIO: ID'].astype('string')
 df_meta_ads['ANÚNCIO: NOME'] = df_meta_ads['ANÚNCIO: NOME'].astype('string')
 df_meta_ads['UNIQUE ID'] = df_meta_ads['UNIQUE ID'].astype('string')
-df_meta_ads['CPM'] = pd.to_numeric(df_meta_ads['CPM'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['VALOR USADO'] = pd.to_numeric(df_meta_ads['VALOR USADO'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['LEADS'] = pd.to_numeric(df_meta_ads['LEADS'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['CPL'] = pd.to_numeric(df_meta_ads['CPL'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['CTR'] = pd.to_numeric(df_meta_ads['CTR'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['IMPRESSÕES'] = pd.to_numeric(df_meta_ads['IMPRESSÕES'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['ALCANCE'] = pd.to_numeric(df_meta_ads['ALCANCE'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['FREQUÊNCIA'] = pd.to_numeric(df_meta_ads['FREQUÊNCIA'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['CLICKS'] = pd.to_numeric(df_meta_ads['CLICKS'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['CLICKS NO LINK'] = pd.to_numeric(df_meta_ads['CLICKS NO LINK'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['PAGEVIEWS'] = pd.to_numeric(df_meta_ads['PAGEVIEWS'], errors='coerce').fillna(0).astype('int32')
-df_meta_ads['LP CTR'] = pd.to_numeric(df_meta_ads['LP CTR'], errors='coerce').fillna(0).astype('float32')
-df_meta_ads['1s'] = pd.to_numeric(df_meta_ads['1s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['2s'] = pd.to_numeric(df_meta_ads['2s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['3s'] = pd.to_numeric(df_meta_ads['3s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['4s'] = pd.to_numeric(df_meta_ads['4s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['5s'] = pd.to_numeric(df_meta_ads['5s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['6s'] = pd.to_numeric(df_meta_ads['6s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['7s'] = pd.to_numeric(df_meta_ads['7s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['8s'] = pd.to_numeric(df_meta_ads['8s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['9s'] = pd.to_numeric(df_meta_ads['9s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['10s'] = pd.to_numeric(df_meta_ads['10s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['11s'] = pd.to_numeric(df_meta_ads['11s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['12s'] = pd.to_numeric(df_meta_ads['12s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['13s'] = pd.to_numeric(df_meta_ads['13s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['14s'] = pd.to_numeric(df_meta_ads['14s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['15-20s'] = pd.to_numeric(df_meta_ads['15-20s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['20-25s'] = pd.to_numeric(df_meta_ads['20-25s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['25-30s'] = pd.to_numeric(df_meta_ads['25-30s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['30-40s'] = pd.to_numeric(df_meta_ads['30-40s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['40-50s'] = pd.to_numeric(df_meta_ads['40-50s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['50-60s'] = pd.to_numeric(df_meta_ads['50-60s'], errors='coerce').fillna(0).astype('int8')
-df_meta_ads['60s+'] = pd.to_numeric(df_meta_ads['60s+'], errors='coerce').fillna(0).astype('int8')
+df_meta_ads['CPM'] = cast_number(df_meta_ads['CPM'], 'float32')
+df_meta_ads['VALOR USADO'] = cast_number(df_meta_ads['VALOR USADO'], 'float32')
+df_meta_ads['LEADS'] = cast_number(df_meta_ads['LEADS'], 'int32')
+df_meta_ads['CPL'] = cast_number(df_meta_ads['CPL'], 'float32')
+df_meta_ads['CTR'] = cast_number(df_meta_ads['CTR'], 'float32')
+df_meta_ads['IMPRESSÕES'] = cast_number(df_meta_ads['IMPRESSÕES'], 'int32')
+df_meta_ads['ALCANCE'] = cast_number(df_meta_ads['ALCANCE'], 'int32')
+df_meta_ads['FREQUÊNCIA'] = cast_number(df_meta_ads['FREQUÊNCIA'], 'float32')
+df_meta_ads['CLICKS'] = cast_number(df_meta_ads['CLICKS'], 'int32')
+df_meta_ads['CLICKS NO LINK'] = cast_number(df_meta_ads['CLICKS NO LINK'], 'int32')
+df_meta_ads['PAGEVIEWS'] = cast_number(df_meta_ads['PAGEVIEWS'], 'int32')
+df_meta_ads['LP CTR'] = cast_number(df_meta_ads['LP CTR'], 'float32')
+df_meta_ads['1s'] = cast_number(df_meta_ads['1s'], 'int8')
+df_meta_ads['2s'] = cast_number(df_meta_ads['2s'], 'int8')
+df_meta_ads['3s'] = cast_number(df_meta_ads['3s'], 'int8')
+df_meta_ads['4s'] = cast_number(df_meta_ads['4s'], 'int8')
+df_meta_ads['5s'] = cast_number(df_meta_ads['5s'], 'int8')
+df_meta_ads['6s'] = cast_number(df_meta_ads['6s'], 'int8')
+df_meta_ads['7s'] = cast_number(df_meta_ads['7s'], 'int8')
+df_meta_ads['8s'] = cast_number(df_meta_ads['8s'], 'int8')
+df_meta_ads['9s'] = cast_number(df_meta_ads['9s'], 'int8')
+df_meta_ads['10s'] = cast_number(df_meta_ads['10s'], 'int8')
+df_meta_ads['11s'] = cast_number(df_meta_ads['11s'], 'int8')
+df_meta_ads['12s'] = cast_number(df_meta_ads['12s'], 'int8')
+df_meta_ads['13s'] = cast_number(df_meta_ads['13s'], 'int8')
+df_meta_ads['14s'] = cast_number(df_meta_ads['14s'], 'int8')
+df_meta_ads['15-20s'] = cast_number(df_meta_ads['15-20s'], 'int8')
+df_meta_ads['20-25s'] = cast_number(df_meta_ads['20-25s'], 'int8')
+df_meta_ads['25-30s'] = cast_number(df_meta_ads['25-30s'], 'int8')
+df_meta_ads['30-40s'] = cast_number(df_meta_ads['30-40s'], 'int8')
+df_meta_ads['40-50s'] = cast_number(df_meta_ads['40-50s'], 'int8')
+df_meta_ads['50-60s'] = cast_number(df_meta_ads['50-60s'],'int8')
+df_meta_ads['60s+'] = cast_number(df_meta_ads['60s+'], 'int8')
 # CALCULA E FORMATA VALORES
-df_meta_ads['CONNECT RATE'] = (df_meta_ads['PAGEVIEWS'] / df_meta_ads['CLICKS NO LINK'].replace(0, pd.NA).fillna(0)).astype('float32')
-df_meta_ads['CONVERSÃO DA PÁGINA'] = (df_meta_ads['LEADS'] / df_meta_ads['PAGEVIEWS'].replace(0, pd.NA).fillna(0)).astype('float32')
-df_meta_ads['PERFIL CTR'] = (df_meta_ads['CTR'] - df_meta_ads['LP CTR']).astype('float32')
+df_meta_ads['CONNECT RATE'] = safe_divide(df_meta_ads['PAGEVIEWS'], df_meta_ads['CLICKS NO LINK']).fillna(0).astype('float32')
+df_meta_ads['CONVERSÃO DA PÁGINA'] = safe_divide(df_meta_ads['LEADS'], df_meta_ads['PAGEVIEWS']).fillna(0).astype('float32')
+df_meta_ads['PERFIL CTR'] = cast_number((df_meta_ads['CTR'] - df_meta_ads['LP CTR']), 'float32')
 df_meta_ads.reset_index(drop=True)
-# CONFIGURA COLUNAS
-""" column_cfg_meta_ads={
-        "STATUS": st.column_config.SelectboxColumn(
-            "💡 Status",
-            help="Status do anúncio",
-            width="medium",
-            options=[
-                "ATIVO",
-                "PAUSADO",
-                "REJEITADO",
-                "SEM DADOS"
-            ],
-            required=False,
-        )
-} """
-
 
 ### ANÚNCIOS SUBIDOS ###
 # FILTRA COLUNAS E FORMATA VALORES

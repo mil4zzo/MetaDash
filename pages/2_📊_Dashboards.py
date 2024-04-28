@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 
+from libs.utils import safe_divide
 
 df_meta_ads = st.session_state['df_meta_ads']
 df_pesquisa = st.session_state['df_pesquisa']
-
-ctab = pd.crosstab(df_pesquisa['UTM_TERM'], df_pesquisa['PATRIMÔNIO'], normalize="index")
-st.dataframe(ctab)
 
 df_meta_ads = df_meta_ads.groupby("ANÚNCIO: NOME").agg({
     'LEADS': 'sum',
@@ -17,9 +15,10 @@ df_meta_ads = df_meta_ads.groupby("ANÚNCIO: NOME").agg({
     'CLICKS NO LINK': 'sum',
     'PAGEVIEWS': 'sum'
 })
-df_meta_ads['CTR'] = df_meta_ads['CLICKS'] / df_meta_ads['IMPRESSÕES'] * 100
-df_meta_ads['CONNECT RATE'] = df_meta_ads['PAGEVIEWS'] / df_meta_ads['CLICKS NO LINK'] * 100
-df_meta_ads['CONVERSÃO DA PÁGINA'] = df_meta_ads['LEADS'] / df_meta_ads['PAGEVIEWS'] * 100
+
+df_meta_ads['CTR'] = safe_divide(df_meta_ads['CLICKS'], df_meta_ads['IMPRESSÕES']) * 100
+df_meta_ads['CONNECT RATE'] = safe_divide(df_meta_ads['PAGEVIEWS'], df_meta_ads['CLICKS NO LINK']) * 100
+df_meta_ads['CONVERSÃO DA PÁGINA'] = safe_divide(df_meta_ads['LEADS'], df_meta_ads['PAGEVIEWS']) * 100
 
 col_orders_por_anuncio = [
     "LEADS",
@@ -34,7 +33,12 @@ col_orders_por_anuncio = [
     "PAGEVIEWS"
 ]
 
-df_meta_ads = df_meta_ads[col_orders_por_anuncio]
+df_meta_ads = df_meta_ads[col_orders_por_anuncio].reset_index()
+
+patrimonio_absoluto = pd.crosstab(df_pesquisa['UTM_TERM'], df_pesquisa['PATRIMÔNIO'])
+patrimonio_relativo = pd.crosstab(df_pesquisa['UTM_TERM'], df_pesquisa['PATRIMÔNIO'], normalize="index")
+
+df_meta_ads = df_meta_ads.merge(patrimonio_relativo, left_on="ANÚNCIO: NOME", right_on="UTM_TERM" )
 
 colcfg_por_anuncio = {
         "VALOR USADO": st.column_config.NumberColumn(
