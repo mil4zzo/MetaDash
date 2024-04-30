@@ -20,20 +20,17 @@ COLUMNS_ADS_UPLOADED = ["NOME", "LINK DO DRIVE"]
 ## DEFINE CONSTANTES DE CALIBRAGEM
 TICKET_BRUTO = 1500
 TICKET_LIQUIDO = 1050
-TX_CONVERSAO = [
-    {
-        "PATRIMÔNIO": [
-            {"Acima de R$1 milhão": 0.0489},
-            {"Entre R$500 mil e R$1 milhão": 0.0442},
-            {"Entre R$250 mil e R$500 mil": 0.04},
-            {"Entre R$100 mil e R$250 mil": 0.0382},
-            {"Entre R$20 mil e R$100 mil": 0.0203},
-            {"Entre R$5 mil e R$20 mil": 0.0142},
-            {"Menos de R$5 mil": 0.0067}
-        ]
+TX_CONVERSAO = {
+        "PATRIMONIO": {
+            "Acima de R$1 milhão": 0.0489,
+            "Entre R$500 mil e R$1 milhão": 0.0442,
+            "Entre R$250 mil e R$500 mil": 0.04,
+            "Entre R$100 mil e R$250 mil": 0.0382,
+            "Entre R$20 mil e R$100 mil": 0.0203,
+            "Entre R$5 mil e R$20 mil": 0.0142,
+            "Menos de R$5 mil": 0.0067
+        }
     }
-]
-
 
 ## CARREGA DADOS DE PLANILHA DO GOOGLE SHEETS
 @st.cache_data(show_spinner="Carregando dados...", ttl=9000)
@@ -46,7 +43,6 @@ def load_sheet(sheet_name, worksheet_name):
     # Get all data from the sheet
     data = sheet.get_all_records()
     return pd.DataFrame(data)
-
 
 ## PREPARA PLANILHA PESQUISA DE TRÁFEGO
 def load_pesquisa():
@@ -66,7 +62,6 @@ def load_pesquisa():
     df_pesquisa.reset_index(drop=True)
     st.session_state['df_pesquisa'] = df_pesquisa
     return df_pesquisa
-
 
 ### PREPARA PLANILHA META ADS
 def load_meta_ads():
