@@ -151,3 +151,5 @@ st.dataframe(df_uploaded_ads, use_container_width=True)
 st.sidebar.write(f"Ticket bruto: {TICKET_BRUTO}")
 st.sidebar.write(f"Ticket liquido: {TICKET_LIQUIDO}")
 st.sidebar.table(pd.DataFrame(TX_CONVERSAO[0]['conversoes']).style.format({"taxa": "{:.2%}"}))
+
+
