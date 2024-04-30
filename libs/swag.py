@@ -1,6 +1,10 @@
 
 import streamlit as st
 
+def load_css():
+    with open('style.css') as css:
+        st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
+
 ## ORDEM DAS COLUNAS
 COLUMNS_ORDER_PERFORMANCE = [
     "LEADS",
