@@ -1,2 +1,4 @@
 metadash-gcsac.json
 *.ipynb
+__pycache__/
+*.py[cod]
