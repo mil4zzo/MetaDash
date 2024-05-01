@@ -44,6 +44,9 @@ df_meta_ads['FREQUÊNCIA'] = safe_divide(df_meta_ads['IMPRESSÕES'], df_meta_ads
 
 ## CROSSTABS DE PESQUISA vs PATRIMONIO
 patrimonio_relativo = pd.crosstab(df_pesquisa[COL_PESQUISA_INDEX], df_pesquisa['PATRIMÔNIO'], normalize='index')
+patrimonio_relativo *= 100
+patrimonio_relativo = patrimonio_relativo.round(2)
+patrimonio_relativo['DISTRIBUIÇÃO'] = patrimonio_relativo.values.tolist()
 patrimonio_absoluto = pd.crosstab(df_pesquisa[COL_PESQUISA_INDEX], df_pesquisa['PATRIMÔNIO'])
 patrimonio_absoluto['PESQUISAS'] = patrimonio_absoluto.sum(axis=1)
 
@@ -61,11 +64,14 @@ col2.metric("Pesquisas", df_pesquisa.count()[0])
 col3.metric("Anúncios", df_meta_ads.count()[0])
 
 # FILTROS
-leads_min = st.sidebar.slider('Leads: mínimo', 0, df_meta_ads['LEADS'].max(), step=1)
-valor_usado_min = st.sidebar.slider('Valor usado: mínimo', 0.0, float(df_meta_ads['VALOR USADO'].max()), step=1.0)
+sorted_lead_values = sorted(df_meta_ads['LEADS'].unique())
+sorted_valor_usado_values = sorted(df_meta_ads['VALOR USADO'].unique())
+leads_min, leads_max = st.sidebar.select_slider('Leads', options=sorted_lead_values, value=(sorted_lead_values[0], sorted_lead_values[-1]))
+valor_usado_min, valor_usado_max = st.sidebar.select_slider('Valor usado', options=sorted_valor_usado_values, value=(sorted_valor_usado_values[0], sorted_valor_usado_values[-1]))
 
 # FILTRA
-df_meta_ads = df_meta_ads[(df_meta_ads['LEADS'] > leads_min) & (df_meta_ads['VALOR USADO'] > valor_usado_min)]
+df_meta_ads = df_meta_ads[(df_meta_ads['LEADS'] > leads_min) & (df_meta_ads['LEADS'] < leads_max) & (df_meta_ads['VALOR USADO'] > valor_usado_min)]
+
 
 st.markdown('#')
-st.dataframe(df_meta_ads, column_config=COLUMNS_CFG_PERFORMANCE, use_container_width=True, hide_index=True)
+st.dataframe(df_meta_ads.sort_values('CTR', ascending=False), column_config=COLUMNS_CFG_PERFORMANCE, use_container_width=True, hide_index=True)

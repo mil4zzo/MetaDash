@@ -95,5 +95,12 @@ COLUMNS_CFG_PERFORMANCE = {
         help="Taxa de conversão da página de captura",
         format="%.2f %%",
         width="small"
+    ),
+    "DISTRIBUIÇÃO": st.column_config.AreaChartColumn(
+        "PATRIMÔNIO",
+        help="Taxa de conversão da página de captura",
+        width="medium",
+        y_min=0.0,
+        y_max=100.0,
     )
 }
