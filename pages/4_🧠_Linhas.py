@@ -74,8 +74,8 @@ df_meta_ads = df_meta_ads.merge(patrimonio_relativo, left_on=COL_META_INDEX, rig
 # Streamlit app
 col1, col2, col3 = st.columns([5,1,1])
 col1.title('⚡ Performance por Linha')
-col2.metric("Pesquisas", df_pesquisa.count()[0])
-col3.metric("Linhas", df_meta_ads.count()[0])
+col2.metric("Pesquisas", df_pesquisa.count().iloc[0])
+col3.metric("Linhas", df_meta_ads.count().iloc[0])
 
 st.markdown('#')
 st.dataframe(df_meta_ads, column_config=COLUMNS_CFG_PERFORMANCE, use_container_width=True, hide_index=True)

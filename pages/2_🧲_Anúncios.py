@@ -57,8 +57,8 @@ df_meta_ads = df_meta_ads.merge(patrimonio_relativo, left_on=COL_META_INDEX, rig
 # Streamlit app
 col1, col2, col3 = st.columns([5,1,1])
 col1.title('⚡ Performance por Anúncio')
-col2.metric("Pesquisas", df_pesquisa.count()[0])
-col3.metric("Anúncios", df_meta_ads.count()[0])
+col2.metric("Pesquisas", df_pesquisa.count().iloc[0])
+col3.metric("Anúncios", df_meta_ads.count().iloc[0])
 
 # FILTROS
 leads_min = st.sidebar.slider('Leads: mínimo', 0, df_meta_ads['LEADS'].max(), step=1)

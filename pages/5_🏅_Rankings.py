@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from libs.dataloader import load_meta_ads, load_pesquisa, load_uploaded_ads
-from libs.swag import COLUMNS_CFG_PERFORMANCE, COLUMNS_ORDER_PERFORMANCE
+from libs.swag import COLUMNS_CFG_PERFORMANCE, COLUMNS_ORDER_PERFORMANCE, load_css
 from libs.utils import safe_divide
 
 st.set_page_config(
@@ -10,6 +10,8 @@ st.set_page_config(
     page_title='Anúncios',
     page_icon='🧲'
 )
+
+load_css()
 
 ## DEFINE COLUNAS DE PERFORMANCE
 COL_META_INDEX = 'ANÚNCIO: NOME'
@@ -60,14 +62,19 @@ df_meta_ads = df_meta_ads.merge(patrimonio_relativo, left_on=COL_META_INDEX, rig
 # Streamlit app
 col1, col2, col3 = st.columns([5,1,1])
 col1.title('⚡ Performance por Anúncio')
-col2.metric("Pesquisas", df_pesquisa.count()[0])
-col3.metric("Anúncios", df_meta_ads.count()[0])
+col2.metric("Pesquisas", df_pesquisa.count().iloc[0])
+col3.metric("Anúncios", df_meta_ads.count().iloc[0])
 
 # FILTROS
 sorted_lead_values = sorted(df_meta_ads['LEADS'].unique())
 sorted_valor_usado_values = sorted(df_meta_ads['VALOR USADO'].unique())
-leads_min, leads_max = st.sidebar.select_slider('Leads', options=sorted_lead_values, value=(sorted_lead_values[0], sorted_lead_values[-1]))
-valor_usado_min, valor_usado_max = st.sidebar.select_slider('Valor usado', options=sorted_valor_usado_values, value=(sorted_valor_usado_values[0], sorted_valor_usado_values[-1]))
+leads_min, leads_max = st.sidebar.select_slider('Leads',
+                                                options=sorted_lead_values,
+                                                value=(sorted_lead_values[0], sorted_lead_values[-1]))
+valor_usado_min, valor_usado_max = st.sidebar.select_slider('Valor usado',
+                                                options=sorted_valor_usado_values,
+                                                value=(sorted_valor_usado_values[0], sorted_valor_usado_values[-1]),
+                                                format_func=lambda x: f'R$ {x:.2f}')
 
 # FILTRA
 df_meta_ads = df_meta_ads[(df_meta_ads['LEADS'] > leads_min) & (df_meta_ads['LEADS'] < leads_max) & (df_meta_ads['VALOR USADO'] > valor_usado_min)]
